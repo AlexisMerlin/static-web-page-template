@@ -17,6 +17,7 @@
   "license": "ISC",
   "type": "commonjs",
   "devDependencies": {
+    "@eslint/js": "^10.0.1",
     "eslint": "^10.0.2",
     "htmlhint": "^1.9.1",
     "live-server": "^1.2.2",
