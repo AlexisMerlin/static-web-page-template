@@ -1,6 +1,6 @@
 # Guía paso a paso: Entorno de desarrollo local para proyectos **HTML/CSS/JS estático** (modo moderno)
 
-> Objetivo: crear una guía clara y reproducible que un desarrollador principiante pueda seguir para montar un proyecto web estático con herramientas modernas (linters, formateador, servidor local, hooks de Git) sin usar *bundlers*.
+> Objetivo: guiar de manera clara y reproducible a un desarrollador principiante para montar un proyecto web estático con herramientas modernas (linters, formateador, servidor local, hooks de Git) sin usar *bundlers*.
 
 ---
 
@@ -12,8 +12,8 @@
 4. `package.json` sugerido y scripts útiles
 5. Archivos de configuración (ESLint, Prettier, Stylelint, HTMLHint)
 6. Archivos ejemplo: `index.html`, `main.js`, `styles.css`
-7. Opcional: hooks de Git con Husky + lint-staged
-8. Integración con VSCode (ajustes recomendados)
+7. Integración con VSCode (ajustes recomendados)
+8. Opcional: hooks de Git con Husky + lint-staged
 9. Flujo de trabajo diario (qué ejecutar y cuándo)
 10. Troubleshooting y buenas prácticas
 
@@ -44,10 +44,12 @@ mi-proyecto/
 │  └─ assets/
 │     ├─ css/
 │     │  └─ styles.css
+│     │
 │     ├─ js/
 │     │  └─ main.js
 │     └─ images/
-├─ .eslintrc.cjs
+│
+├─ eslint.config.cjs
 ├─ .prettierrc
 ├─ .stylelintrc.json
 ├─ .htmlhintrc
