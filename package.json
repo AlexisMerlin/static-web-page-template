@@ -1,0 +1,28 @@
+{
+  "name": "web-lint-test",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "dev": "live-server public --port=5173",
+    "start": "serve public -s -l 5000",
+    "lint": "npm run lint:js && npm run lint:css && npm run lint:html",
+    "lint:js": "eslint \"public/assets/js/**/*.js\"",
+    "lint:css": "stylelint \"public/assets/css/**/*.css\"",
+    "lint:html": "htmlhint \"public/**/*.html\"",
+    "format": "prettier --write \"public/**/*.{js,css,html}\""
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "devDependencies": {
+    "eslint": "^10.0.2",
+    "htmlhint": "^1.9.1",
+    "live-server": "^1.2.2",
+    "prettier": "^3.8.1",
+    "serve": "^14.2.5",
+    "stylelint": "^17.3.0",
+    "stylelint-config-standard": "^40.0.0"
+  }
+}
