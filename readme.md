@@ -52,7 +52,7 @@ mi-proyecto/
 ├─ eslint.config.cjs
 ├─ .prettierrc
 ├─ .stylelintrc.json
-├─ .htmlhintrc
+├─ .htmlvalidate.json
 ├─ .gitignore
 ├─ package.json
 └─ README.md
@@ -76,7 +76,7 @@ npm init -y
 Instala las herramientas de desarrollo (devDependencies):
 
 ```bash
-npm install --save-dev eslint @eslint/js prettier stylelint stylelint-config-standard htmlhint serve live-server 
+npm install --save-dev eslint @eslint/js prettier stylelint stylelint-config-standard html-validate serve live-server 
 ```
 
 **Qué hace cada paquete** (resumen):
@@ -85,7 +85,7 @@ npm install --save-dev eslint @eslint/js prettier stylelint stylelint-config-sta
 * `prettier`: formatea código (JS, CSS, HTML) de forma consistente.
 * `stylelint`: valida reglas de CSS (buenas prácticas y errores comunes).
 * `stylelint-config-standard`: configuración base recomendada para stylelint.
-* `htmlhint`: valida HTML según reglas configurables.
+* `html-validate`: analizador y linter de HTML que soporta plugins y es compatible con Prettier.
 * `serve`: servidor estático compacto para publicar la carpeta `public` (útil para producción/local).
 * `live-server`: servidor de desarrollo con recarga automática (ideal para editar y ver cambios al instante).
 
@@ -105,7 +105,7 @@ Sustituye o actualiza el `package.json` que se creó con `npm init` con este con
     "lint": "npm run lint:js && npm run lint:css && npm run lint:html",
     "lint:js": "eslint \"public/assets/js/**/*.js\"",
     "lint:css": "stylelint \"public/assets/css/**/*.css\"",
-    "lint:html": "htmlhint \"public/**/*.html\"",
+    "lint:html": "html-validate \"public/**/*.html\"",
     "format": "prettier --write \"public/**/*.{js,css,html}\""
   }
 }
@@ -186,18 +186,22 @@ module.exports = [
 
 **Explicación**: `stylelint-config-standard` aplica un set de reglas ampliamente adoptado para CSS. Si usas CSS moderno (p. ej. `@layer`, `@apply`) podríamos añadir excepciones con `rules`.
 
-### `.htmlhintrc`
+### Configuración de HTML‑Validate
+
+Crea un fichero `.htmlvalidate.json` en la raíz del proyecto. Un ejemplo mínimo que también desactiva las reglas de formato que puede chocar con Prettier es:
 
 ```json
 {
-  "tagname-lowercase": true,
-  "attr-lowercase": true,
-  "doctype-first": true,
-  "id-unique": true
+  "extends": ["html-validate:recommended"],
+  "rules": {
+    "doctype-style": "off",
+    "void-style": "off",
+    "close-order": "error"
+  }
 }
 ```
 
-**Explicación**: reglas simples para evitar errores comunes en HTML.
+**Explicación**: HTML‑Validate es un linter moderno que admite configuraciones extensibles y se integra bien con Prettier. Al desactivar las reglas de formato evitamos choques cuando ambos se ejecutan sobre los mismos archivos.
 
 ### `.gitignore` (mínimo sugerido)
 
@@ -287,12 +291,12 @@ Crea (o edita) `.vscode/extensions.json` en la raíz del proyecto con estas opci
         "stylelint.vscode-stylelint",
         "dbaeumer.vscode-eslint",
         "esbenp.prettier-vscode",
-        "HTMLHint.vscode-htmlhint"
+        "html-validate.vscode-html-validate"  
     ]
 }
 ```
 
-Explicación: `stylelint.vscode-stylelint` muestra en el editor de código los errores o advertencias en tu código CSS, `dbaeumer.vscode-eslint` muestra en el editor de código los errores o advertencias en tu código JavaScript, `esbenp.prettier-vscode` formatea rápidamente tu código respetando la configuración de tu proyecto, `HTMLHint.vscode-htmlhint` muestra advertencias sobre posibles errores en tu código html.
+> Explicación: `stylelint.vscode-stylelint` muestra en el editor de código los errores o advertencias en tu código CSS, `dbaeumer.vscode-eslint` muestra en el editor de código los errores o advertencias en tu código JavaScript, `esbenp.prettier-vscode` formatea rápidamente tu código respetando la configuración de tu proyecto, `t"html-validate.vscode-html-validate"` proporciona validación de HTML usando html-validate dentro del editor.
 
 ---
 

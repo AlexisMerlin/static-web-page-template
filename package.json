@@ -9,7 +9,7 @@
     "lint": "npm run lint:js && npm run lint:css && npm run lint:html",
     "lint:js": "eslint \"public/assets/js/**/*.js\"",
     "lint:css": "stylelint \"public/assets/css/**/*.css\"",
-    "lint:html": "htmlhint \"public/**/*.html\"",
+    "lint:html": "html-validate \"public/**/*.html\"",
     "format": "prettier --write \"public/**/*.{js,css,html}\""
   },
   "keywords": [],
@@ -19,7 +19,7 @@
   "devDependencies": {
     "@eslint/js": "^10.0.1",
     "eslint": "^10.0.2",
-    "htmlhint": "^1.9.1",
+    "html-validate": "^10.11.0",
     "live-server": "^1.2.2",
     "prettier": "^3.8.1",
     "serve": "^14.2.5",
