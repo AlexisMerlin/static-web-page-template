@@ -1,6 +1,6 @@
-# Guía paso a paso: Entorno de desarrollo local para proyectos **HTML/CSS/JS estático** (modo moderno)
+# Guía paso a paso: Entorno de desarrollo local para proyectos **HTML/CSS/JS estático** con Vite
 
-> Objetivo: guiar de manera clara y reproducible a un desarrollador principiante para montar un proyecto web estático con herramientas modernas (linters, formateador, servidor local, hooks de Git) sin usar *bundlers*.
+> Objetivo: guiar de manera clara y reproducible a un desarrollador principiante para montar un proyecto web estático con herramientas modernas (Vite, linters, formateador, hooks de Git) usando un flujo ligero y actual.
 
 ---
 
@@ -10,7 +10,7 @@
 2. Estructura de carpetas recomendada
 3. Comandos para crear el proyecto e instalar dependencias
 4. `package.json` sugerido y scripts útiles
-5. Archivos de configuración (ESLint, Prettier, Stylelint, HTMLHint)
+5. Archivos de configuración (ESLint, Prettier, Stylelint, HTML-Validate)
 6. Archivos ejemplo: `index.html`, `main.js`, `styles.css`
 7. Integración con VSCode (ajustes recomendados)
 8. Opcional: hooks de Git con Husky + lint-staged
@@ -39,16 +39,14 @@ git --version
 
 ```
 mi-proyecto/
-├─ public/
-│  ├─ index.html
-│  └─ assets/
-│     ├─ css/
-│     │  └─ styles.css
-│     │
-│     ├─ js/
-│     │  └─ main.js
-│     └─ images/
-│
+├─ index.html
+├─ assets/
+│  ├─ css/
+│  │  └─ styles.css
+│  ├─ js/
+│  │  └─ main.js
+│  └─ images/
+├─ dist/
 ├─ eslint.config.cjs
 ├─ .prettierrc
 ├─ .stylelintrc.json
@@ -58,8 +56,9 @@ mi-proyecto/
 └─ README.md
 ```
 
-* `public/` contiene los archivos que el navegador va a consumir tal cual. No hay paso de build.
+* `index.html` vive en la raíz, como espera Vite por defecto.
 * `assets/` separa CSS, JS e imágenes para mantener orden.
+* `dist/` es la salida de `npm run build`.
 
 ---
 
@@ -76,18 +75,19 @@ npm init -y
 Instala las herramientas de desarrollo (devDependencies):
 
 ```bash
-npm install --save-dev eslint @eslint/js prettier stylelint stylelint-config-standard html-validate serve live-server 
+npm install --save-dev vite eslint @eslint/js globals prettier stylelint stylelint-config-standard html-validate
 ```
 
 **Qué hace cada paquete** (resumen):
 
+* `vite`: servidor de desarrollo rápido y herramienta de build para generar `dist/`.
 * `eslint`: detecta errores y malas prácticas en JavaScript.
+* `@eslint/js`: reglas base recomendadas para ESLint flat config.
+* `globals`: catálogo de variables globales (p. ej. navegador) para ESLint.
 * `prettier`: formatea código (JS, CSS, HTML) de forma consistente.
 * `stylelint`: valida reglas de CSS (buenas prácticas y errores comunes).
 * `stylelint-config-standard`: configuración base recomendada para stylelint.
 * `html-validate`: analizador y linter de HTML que soporta plugins y es compatible con Prettier.
-* `serve`: servidor estático compacto para publicar la carpeta `public` (útil para producción/local).
-* `live-server`: servidor de desarrollo con recarga automática (ideal para editar y ver cambios al instante).
 
 > Nota: más adelante puedes añadir `husky` y `lint-staged` para hooks de commit (se explica en la sección 7).
 
@@ -100,19 +100,23 @@ Sustituye o actualiza el `package.json` que se creó con `npm init` con este con
 ```json
 {
   "scripts": {
-    "dev": "live-server public --port=5173",
-    "start": "serve public -s -l 5000",
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview --port 5000",
+    "start": "vite --port 5000",
     "lint": "npm run lint:js && npm run lint:css && npm run lint:html",
-    "lint:js": "eslint \"public/assets/js/**/*.js\"",
-    "lint:css": "stylelint \"public/assets/css/**/*.css\"",
-    "lint:html": "html-validate \"public/**/*.html\"",
-    "format": "prettier --write \"public/**/*.{js,css,html}\""
+    "lint:js": "eslint \"assets/js/**/*.js\"",
+    "lint:css": "stylelint \"assets/css/**/*.css\"",
+    "lint:html": "html-validate \"index.html\"",
+    "format": "prettier --write \"./index.html\" \"./assets/**/*.{js,css,html}\""
   }
 }
 ```
 
-* `npm run dev`: inicia el servidor de desarrollo con recarga automática.
-* `npm start`: sirve la carpeta `public` con `serve` (útil para pruebas de despliegue local).
+* `npm run dev`: inicia el servidor de desarrollo de Vite.
+* `npm run build`: compila la versión de producción en `dist/`.
+* `npm run preview`: sirve el build generado para validar producción local.
+* `npm start`: levanta Vite en puerto `5000` como alternativa rápida.
 * `npm run lint`: ejecuta todos los linters.
 * `npm run format`: formatea todos los archivos con Prettier.
 
@@ -126,37 +130,37 @@ A continuación se incluyen las configuraciones mínimas recomendadas. Crea cada
 
 A partir de ESLint v9 y obligatorio en v10, se usa el nuevo sistema **flat config** en lugar de `.eslintrc.*`.
 
-Crea un archivo llamado `eslint.config.js` en la raíz del proyecto:
+Crea un archivo llamado `eslint.config.cjs` en la raíz del proyecto:
 
 ```js
 const js = require('@eslint/js');
+const globals = require('globals');
 
 module.exports = [
   js.configs.recommended,
   {
-    files: ['public/assets/js/**/*.js'],
+    files: ['assets/js/**/*.js'],
     languageOptions: {
       ecmaVersion: 'latest',
       sourceType: 'module',
       globals: {
-        document: 'readonly',
-        window: 'readonly',
-        console: 'readonly'
-      }
+        ...globals.browser,
+      },
     },
     rules: {
-      'no-unused-vars': 'warn',
-      'no-console': 'off'
-    }
-  }
+      'no-unused-vars': 'error',
+      'no-console': 'off',
+    },
+  },
 ];
 ```
 
 
 **Explicación**:
 
-* ESLint ahora usa un archivo `eslint.config.js` en formato ESM.
+* ESLint usa flat config; en este proyecto se mantiene en CommonJS con `eslint.config.cjs`.
 * `@eslint/js` contiene la configuración base equivalente a `eslint:recommended`.
+* `globals` evita declarar manualmente cada global del navegador.
 * `files` indica qué archivos deben ser evaluados.
 * `ecmaVersion: 'latest'` permite sintaxis moderna.
 * `sourceType: 'module'` habilita `import`/`export`.
@@ -214,26 +218,25 @@ dist/
 
 ---
 
-## 6) Archivos ejemplo (copiar a `public/`)
+## 6) Archivos ejemplo
 
-### `public/index.html`
+### `index.html` (raíz)
 
 ```html
-<!DOCTYPE html>
-<html lang="es">
+<!doctype html>
+<html lang="en">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Mi Proyecto</title>
-    <link rel="stylesheet" href="./assets/css/styles.css" />
+    <title>Document</title>
   </head>
   <body>
     <main>
       <h1>Hola, mundo</h1>
-      <button id="btn">Haz clic</button>
+      <button type="button" id="btn">Haz clic</button>
+      <div>test</div>
     </main>
-
-    <script type="module" src="./assets/js/main.js"></script>
+    <script type="module" src="/assets/js/main.js"></script>
   </body>
 </html>
 ```
@@ -241,9 +244,9 @@ dist/
 **Puntos didácticos**:
 
 * `type="module"` permite usar `import`/`export` directamente en el navegador.
-* Rutas relativas claras para que el alumno entienda la relación archivos/HTML.
+* Con Vite se usa habitualmente ruta absoluta desde raíz (`/assets/...`) para scripts y recursos.
 
-### `public/assets/js/main.js`
+### `assets/js/main.js`
 
 ```js
 const btn = document.querySelector('#btn');
@@ -254,14 +257,38 @@ btn.addEventListener('click', () => {
 });
 ```
 
-### `public/assets/css/styles.css`
+### `assets/css/styles.css`
 
 ```css
-* { box-sizing: border-box; }
-body { font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial; margin: 0; padding: 2rem; }
-main { max-width: 700px; margin: 0 auto; }
-h1 { color: #1a1a1a; }
-button { padding: 0.5rem 1rem; border-radius: 6px; }
+* {
+  box-sizing: border-box;
+}
+
+body {
+  font-family:
+    system-ui,
+    -apple-system,
+    'Segoe UI',
+    Roboto,
+    'Helvetica Neue',
+    Arial;
+  margin: 0;
+  padding: 2rem;
+}
+
+main {
+  max-width: 700px;
+  margin: 0 auto;
+}
+
+h1 {
+  color: #1a1a1a;
+}
+
+button {
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+}
 ```
 ---
 
@@ -269,18 +296,17 @@ button { padding: 0.5rem 1rem; border-radius: 6px; }
 
 Crea (o edita) `.vscode/settings.json` en la raíz del proyecto con estas opciones:
 
-```json
+```jsonc
 {
-  "editor.formatOnSave": true,
-  "eslint.validate": ["javascript"],
-  "prettier.requireConfig": true
+  "editor.formatOnSave": false,
+  "eslint.validate": ["javascript", "javascriptreact"],
+  "prettier.requireConfig": true,
 }
 ```
 
 **Explicación**:
 
-* `formatOnSave`: formatea al guardar (Prettier).
-* `codeActionsOnSave.source.fixAll.eslint`: aplica correcciones automáticas de ESLint al guardar.
+* `formatOnSave` está desactivado para evitar cambios automáticos no deseados en cada guardado.
 * `prettier.requireConfig`: asegura que Prettier use la configuración del proyecto (no ajustes globales del usuario).
 
 Crea (o edita) `.vscode/extensions.json` en la raíz del proyecto con estas opciones:
@@ -296,7 +322,7 @@ Crea (o edita) `.vscode/extensions.json` en la raíz del proyecto con estas opci
 }
 ```
 
-> Explicación: `stylelint.vscode-stylelint` muestra en el editor de código los errores o advertencias en tu código CSS, `dbaeumer.vscode-eslint` muestra en el editor de código los errores o advertencias en tu código JavaScript, `esbenp.prettier-vscode` formatea rápidamente tu código respetando la configuración de tu proyecto, `t"html-validate.vscode-html-validate"` proporciona validación de HTML usando html-validate dentro del editor.
+> Explicación: `stylelint.vscode-stylelint` muestra en el editor de código los errores o advertencias en tu código CSS, `dbaeumer.vscode-eslint` muestra en el editor de código los errores o advertencias en tu código JavaScript, `esbenp.prettier-vscode` formatea rápidamente tu código respetando la configuración de tu proyecto, `html-validate.vscode-html-validate` proporciona validación de HTML usando html-validate dentro del editor.
 
 ---
 
@@ -321,9 +347,9 @@ Agregar `lint-staged` al `package.json` (ejemplo):
 
 ```json
 "lint-staged": {
-  "public/assets/js/**/*.js": ["eslint --fix", "prettier --write"],
-  "public/assets/css/**/*.css": ["stylelint --fix", "prettier --write"],
-  "public/**/*.html": ["htmlhint", "prettier --write"]
+  "assets/js/**/*.js": ["eslint --fix", "prettier --write"],
+  "assets/css/**/*.css": ["stylelint --fix", "prettier --write"],
+  "index.html": ["html-validate", "prettier --write"]
 }
 ```
 
@@ -332,11 +358,11 @@ Agregar `lint-staged` al `package.json` (ejemplo):
 
 ## 9) Flujo de trabajo diario (sugerido)
 
-1. `npm run dev` — trabajar en el navegador con recarga automática.
+1. `npm run dev` — trabajar en el navegador con HMR y recarga rápida de Vite.
 2. Mientras codifica, guarda archivos para que VSCode formatee y aplique los fixes (si configuraste `formatOnSave`).
 3. Antes de un commit: `npm run lint` y `npm run format` (si tienes Husky, parte de esto se ejecutará automáticamente).
 4. `git add .` → `git commit -m "mensaje"` → si Husky + lint-staged están activos, detectará problemas y evitará commits con errores graves.
-5. `npm start` — para probar la carpeta `public` servida como si fuera un despliegue estático.
+5. `npm run build` y luego `npm run preview` — para validar el resultado de producción.
 
 ---
 
@@ -344,7 +370,7 @@ Agregar `lint-staged` al `package.json` (ejemplo):
 
 * **ESLint no encuentra reglas**: confirma que `node_modules` está instalado y que ejecutas el comando desde la raíz del proyecto.
 * **Prettier formatea distinto que ESLint**: instala `eslint-config-prettier` si quieres que ESLint no discuta con Prettier (opcional, sobre todo cuando activas reglas de estilo en ESLint).
-* **live-server no recarga**: revisa la consola donde ejecutaste `npm run dev` para ver errores; comprueba que no tengas otro proceso en el puerto especificado.
+* **Vite no levanta o puerto ocupado**: cambia el puerto (`vite --port 5174`) o cierra el proceso que ya lo use.
 * **Problemas con módulos ESM (import/export)**: asegúrate de usar `type="module"` en el `script` del HTML y que el navegador soporte módulos (todos los navegadores modernos lo hacen).
 * **Si quieres añadir TypeScript**: podríamos añadir `tsconfig.json`, `typescript` y un pequeño paso de compilación; no es necesario para empezar.
 
@@ -359,12 +385,13 @@ Agregar `lint-staged` al `package.json` (ejemplo):
   * `npm run lint:html`
 * Formatear todo: `npm run format`
 * Levantar dev server: `npm run dev`
-* Servir carpeta para pruebas: `npm start`
+* Compilar build: `npm run build`
+* Previsualizar build: `npm run preview`
 
 ---
 
 ## ¿Qué sigue? (sugerencias didácticas)
 
 * Empieza con ejercicios pequeños: crear un componente (card) que tenga HTML, CSS y un pequeño comportamiento en JS.
-* Introduce `import`/`export` dentro de `public/assets/js/` para que aprenda módulos nativos del navegador.
-* Cuando esté cómodo, agrega pasos opcionales: tests con Jest (para JS), TypeScript, o un bundler ligero como Vite si necesita usar herramientas modernas de build.
+* Introduce `import`/`export` dentro de `assets/js/` para practicar módulos nativos del navegador.
+* Cuando esté cómodo, agrega pasos opcionales: tests con Vitest (para JS), TypeScript o CI para lint/format/build.
