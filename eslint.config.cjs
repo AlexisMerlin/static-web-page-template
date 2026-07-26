@@ -4,7 +4,7 @@ const globals = require('globals');
 module.exports = [
   js.configs.recommended,
   {
-    files: ['public/assets/js/**/*.js'],
+    files: ['assets/js/**/*.js'],
     languageOptions: {
       ecmaVersion: 'latest',
       sourceType: 'module',
